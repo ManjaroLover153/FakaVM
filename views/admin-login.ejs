@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Login</title>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('adminLoggedIn') === 'true') {
+        window.location.href = '/admin-panel';
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>Admin Login</h1>
+  <form id="login-form" method="POST" action="/admin">
+    <input type="password" name="password" placeholder="Enter admin password" required />
+    <button type="submit">Login</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('login-form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const password = form.password.value;
+
+      fetch('/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `password=${encodeURIComponent(password)}`
+      })
+      .then(res => res.text())
+      .then(html => {
+        if (html.includes('FakaVM Admin Panel')) {
+          localStorage.setItem('adminLoggedIn', 'true');
+          document.write(html);
+        } else {
+          alert("Access denied.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

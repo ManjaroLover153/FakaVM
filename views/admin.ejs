@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+</head>
+<body>
+  <h1>FakaVM Admin Panel 👑</h1>
+  <button onclick="logout()">Logout</button>
+
+  <h2>Connected Users:</h2>
+  <ul>
+    <% users.forEach(function(user) { %>
+      <li>
+        <%= user === 'FakaSys' ? '👑 ' : '' %><%= user %>
+        <% if (user !== 'FakaSys') { %>
+          <button onclick="kickUser('<%= user %>')">Kick</button>
+          <button onclick="banUser('<%= user %>')">Ban</button>
+        <% } %>
+      </li>
+    <% }); %>
+  </ul>
+
+  <a href="/">Back to main</a>
+
+  <script>
+    function logout() {
+      localStorage.removeItem('adminLoggedIn');
+      window.location.href = '/admin';
+    }
+
+    function kickUser(username) {
+      if (confirm(`Kick user "${username}"?`)) {
+        fetch('/admin/kick', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `username=${encodeURIComponent(username)}`
+        }).then(() => alert(`User "${username}" kicked.`));
+      }
+    }
+
+    function banUser(username) {
+      if (confirm(`Ban user "${username}"? This will kick and prevent future connections.`)) {
+        fetch('/admin/ban', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `username=${encodeURIComponent(username)}`
+        }).then(() => alert(`User "${username}" banned.`));
+      }
+    }
+  </script>
+</body>
+</html>

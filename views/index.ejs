@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FakaVM</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: row;
+      margin: 0;
+      height: 100vh;
+    }
+    #user-list {
+      width: 200px;
+      background-color: #f4f4f4;
+      border-right: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px;
+    }
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #fff;
+    }
+    form {
+      display: flex;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+    }
+    button {
+      padding: 10px;
+    }
+    #rustdesk-frame {
+      width: 100%;
+      height: 400px;
+      border: none;
+    }
+    #warning-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: yellow;
+      text-align: center;
+      padding: 10px;
+      display: none;
+    }
+    #extension-btn {
+      background-color: gray;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: not-allowed;
+    }
+    #extension-btn.enabled {
+      background-color: green;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="warning-popup">
+    You need the HiFrame extension!<br/>
+    <button id="extension-btn" disabled>I have the extension</button>
+  </div>
+
+  <div id="user-list">
+    <h4>Users</h4>
+    <ul id="users">
+      <li><span style="color: red; font-weight: bold;">👑 FakaSys</span></li>
+      <!-- More users will be added dynamically -->
+    </ul>
+  </div>
+
+  <div id="chat-container">
+    <iframe id="rustdesk-frame" src="https://www.rustdesk.com/web" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+
+    <div id="chat"></div>
+
+    <form id="form" action="">
+      <input id="input" autocomplete="off" placeholder="Type your message..." /><button>Send</button>
+    </form>
+  </div>
+
+  <audio id="chat-sound" src="/chat.mp3" preload="auto"></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const chat = document.getElementById('chat');
+    const users = document.getElementById('users');
+    const sound = document.getElementById('chat-sound');
+
+    const username = prompt("Enter your username:");
+    socket.emit('new user', username);
+
+    socket.on('update users', (userList) => {
+      users.innerHTML = '';
+      userList.forEach(user => {
+        const li = document.createElement('li');
+        const isOwner = user === 'FakaSys';
+        li.innerHTML = `<span style="${isOwner ? 'color: red; font-weight: bold;' : ''}">${isOwner ? '👑 ' : ''}${user}</span>`;
+        users.appendChild(li);
+      });
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', { username, message: input.value });
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', function(msg) {
+      const div = document.createElement('div');
+      const isOwner = msg.username === 'FakaSys';
+      div.innerHTML = `<strong style="${isOwner ? 'color: red; font-weight: bold;' : ''}">${isOwner ? '👑 ' : ''}${msg.username}:</strong> ${msg.message}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+
+      sound.play().catch(e => console.warn("Autoplay blocked:", e));
+    });
+
+    // Warning popup with 5s delay button
+    const popup = document.getElementById('warning-popup');
+    const extBtn = document.getElementById('extension-btn');
+    popup.style.display = 'block';
+    setTimeout(() => {
+      extBtn.disabled = false;
+      extBtn.classList.add('enabled');
+    }, 5000);
+    extBtn.addEventListener('click', () => {
+      popup.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

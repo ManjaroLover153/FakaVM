@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+
+# Environment variables (if you add .env later)
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database file
+fakavm.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
